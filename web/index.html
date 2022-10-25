@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SVG.js</title>
+  <script src="d3.v6.min.js"></script>
+  <script src="jquery-3.5.1.min.js"></script>
+  <script>
+    var svg = null;
+    
+    $(function() {
+      console.log('loading');
+      d3.xml("display.svg")
+        .then(data => {
+          d3.select("#container").node().append(data.documentElement)
+        });
+      const ws = new WebSocket('ws://localhost:8999/');
+      ws.onopen = function() {
+        console.log('WebSocket Client Connected');
+      };
+      ws.onmessage = function(e) {
+        //console.log("Received: '" + e.data + "'");
+	if(e.data[0] == 'L') {
+	  if(e.data[1] == ':') {
+	    // powered off
+	    //console.log('powered off');
+	    for( i = 0; i < 42; i++) {
+		d3.selectAll('g#lay_'+(i+2)+'_0').attr("visibility", "hidden");
+		d3.selectAll('g#lay_'+(i+2)+'_1').attr("visibility", "hidden");
+	    }
+	  } else {
+            //var arr0 = [];
+	    //var arr1 = [];
+	    var i;
+	    for( i = 0; i < 42; i++) { // LAAAAAAAAAAABBBBBBBBBBB
+	      if ( ((parseInt('0x'+e.data[1+Math.trunc(i/4)]) >> (3 - (i%4))) & 1) == 1){
+	        //arr0[i] = 1;
+		d3.selectAll('g#lay_'+(i+2)+'_0').attr("visibility", "visible");
+	      }else{
+	        //arr0[i] = 0;
+		d3.selectAll('g#lay_'+(i+2)+'_0').attr("visibility", "hidden");
+	      }
+	      if ( ((parseInt('0x'+e.data[12+Math.trunc(i/4)]) >> (3 - (i%4))) & 1) == 1){
+	        //arr1[i] = 1;
+		d3.selectAll('g#lay_'+(i+2)+'_1').attr("visibility", "visible");
+	      }else{
+	        //arr1[i] = 0;
+		d3.selectAll('g#lay_'+(i+2)+'_1').attr("visibility", "hidden");
+	      }
+	    }
+	    //console.log(e.data);
+	    //console.log(arr1);
+	  }
+	}
+      };
+      $("#keyb").click(function(e) {
+        var posX = $(this).offset().left, posY = $(this).offset().top;
+        var x = parseInt(e.pageX - posX), y = parseInt(e.pageY - posY);
+        //alert(x + ', ' + y);
+        if(x > 49 && y > 205 && x < 99 && y < 250)ws.send('q');
+        if(x > 96 && y > 373 && x < 152 && y < 431)ws.send('1');
+        if(x > 165 && y > 323 && x < 222 && y < 378)ws.send('2');
+        if(x > 165 && y > 422 && x < 222 && y < 480)ws.send('3');
+        if(x > 236 && y > 358 && x < 320 && y < 443)ws.send('4');
+        if(x > 322 && y > 307 && x < 405 && y < 393)ws.send('5');
+        if(x > 322 && y > 410 && x < 405 && y < 491)ws.send('6');
+        if(x > 407 && y > 358 && x < 489 && y < 443)ws.send('7');
+        if(x > 502 && y > 320 && x < 560 && y < 377)ws.send('8');
+        if(x > 502 && y > 422 && x < 560 && y < 481)ws.send('9');
+        if(x > 572 && y > 374 && x < 628 && y < 430)ws.send('0');
+        
+      });
+    });
+  </script>
+</head>
+<body>
+<div id="container">
+</div>
+<img id="keyb" src="keyb.png">
+</body>
+</html>
